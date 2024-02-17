@@ -99,4 +99,9 @@ const saveTransactionsToLocalStorage = () => {
   margin: 0;
   box-sizing: border-box;
 }
+.container {
+  padding: 15px;
+  border-top: 2px solid #2ecc71;
+  border-bottom: 2px solid #2ecc71;
+}
 </style>
