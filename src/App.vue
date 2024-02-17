@@ -3,8 +3,11 @@
   <div class="container">
     <Balance :total="+total" />
     <IncomeExpenses :income="+income" :expense="+expense" />
-    <TransactionList :transactions="transactions" />
-    <AddTransaction />
+    <TransactionList
+      :transactions="transactions"
+      @transactionDeleted="handleTransactionDeleted"
+    />
+    <AddTransaction @transactionSubmitted="handleTransactionSubmitted" />
   </div>
 </template>
 
@@ -15,14 +18,19 @@ import IncomeExpenses from "./components/IncomeExpenses.vue";
 import TransactionList from "./components/TransactionList.vue";
 import AddTransaction from "./components/AddTransaction.vue";
 
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useToast } from "vue-toastification";
 
-const transactions = ref([
-  { id: 1, text: "Flower", amount: -19.99 },
-  { id: 2, text: "Salary", amount: 299.97 },
-  { id: 3, text: "Book", amount: -10 },
-  { id: 4, text: "Camera", amount: 150 },
-]);
+const toast = useToast();
+
+const transactions = ref([]);
+
+onMounted(() => {
+  const saveTransaction = JSON.parse(localStorage.getItem("transactions"));
+  if (saveTransaction) {
+    transactions.value = saveTransaction;
+  }
+});
 
 // Get Total
 const total = computed(() => {
@@ -52,6 +60,37 @@ const expense = computed(() => {
     }, 0)
     .toFixed(2);
 });
+
+// Add Transaction
+const handleTransactionSubmitted = (transactionData) => {
+  const info = {
+    id: generateUniqueId(),
+    text: transactionData.text,
+    amount: transactionData.amount,
+  };
+  transactions.value.push(info);
+  saveTransactionsToLocalStorage();
+  toast.success("Added new transaction");
+};
+
+// Generate unique id
+const generateUniqueId = () => {
+  return Math.floor(Math.random() * 1000000);
+};
+
+// Delete Transaction
+const handleTransactionDeleted = (id) => {
+  transactions.value = transactions.value.filter(
+    (transaction) => transaction.id !== id
+  );
+  saveTransactionsToLocalStorage();
+  toast.success("Transaction deleted successfully");
+};
+
+//  Save to Local Storage
+const saveTransactionsToLocalStorage = () => {
+  localStorage.setItem("transactions", JSON.stringify(transactions.value));
+};
 </script>
 
 <style>
